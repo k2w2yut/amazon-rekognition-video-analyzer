@@ -1,5 +1,5 @@
 {
-	"s3_bucket" : "<NO-DEFAULT>",
+	"s3_bucket" : "poc-facedetect",
 	"s3_key_frames_root" : "frames/",
 
 	"ddb_table" : "EnrichedFrame",
@@ -7,10 +7,10 @@
 	"rekog_max_labels" : 123,
     "rekog_min_conf" : 50.0,
 
-	"label_watch_list" : ["Human", "Pet", "Bag", "Toy"],
-	"label_watch_min_conf" : 90.0,
+	"label_watch_list" : ["Gun", "Scissor","Knife","Hat","Helmet", "Sunglasses"],
+	"label_watch_min_conf" : 60.0,
 	"label_watch_phone_num" : "",
-    "label_watch_sns_topic_arn" : "",
-
-	"timezone" : "US/Eastern"
+		"label_watch_sns_topic_arn" : "",
+	"timezone" : "US/Eastern",
+	"celebrities_watch_list" : []
 }

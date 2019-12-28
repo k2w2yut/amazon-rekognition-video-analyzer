@@ -17,6 +17,14 @@ from pytz import timezone
 from copy import deepcopy
 
 
+
+# class DecimalEncoder(json.JSONEncoder):
+#     def default(self, o):
+#         if isinstance(o, decimal.Decimal):
+#             return float(o)
+#         return super(DecimalEncoder, self).default(o)
+
+
 def load_config():
     '''Load configuration from file.'''
     with open('imageprocessor-params.json', 'r') as conf_file:
@@ -73,8 +81,8 @@ def process_image(event, context):
         now_ts = time.time()
 
         frame_id = str(uuid.uuid4())
-        processed_timestamp = decimal.Decimal(now_ts)
-        approx_capture_timestamp = decimal.Decimal(approx_capture_ts)
+        processed_timestamp = float(now_ts)
+        approx_capture_timestamp = float(approx_capture_ts)
         
         now = convert_ts(now_ts, config)
         year = now.strftime("%Y")
@@ -93,6 +101,11 @@ def process_image(event, context):
 
         #Iterate on rekognition labels. Enrich and prep them for storage in DynamoDB
         labels_on_watch_list = []
+        
+        # for li in range(len(rekog_response['Labels'])):
+            # rekog_response['Labels'][li]['Confidence'] = decimal.Decimal(rekog_response['Labels'][li]['Confidence'])
+        
+        
         for label in rekog_response['Labels']:
             
             lbl = label['Name']
@@ -100,7 +113,7 @@ def process_image(event, context):
             label['OnWatchList'] = False
 
             #Print labels and confidence to lambda console
-            print('{} .. conf %{:.2f}'.format(lbl, conf))
+            # print('{} .. conf %{:.2f}'.format(lbl, conf))
 
             #Check label watch list and trigger action
             if (lbl.upper() in (label.upper() for label in label_watch_list)
@@ -110,7 +123,7 @@ def process_image(event, context):
                 labels_on_watch_list.append(deepcopy(label))
 
             #Convert from float to decimal for DynamoDB
-            label['Confidence'] = decimal.Decimal(conf)
+            label['Confidence'] = float(conf)
 
         #Send out notification(s), if needed
         if len(labels_on_watch_list) > 0 \
@@ -149,7 +162,8 @@ def process_image(event, context):
         s3_client.put_object(
             Bucket=s3_bucket,
             Key=s3_key,
-            Body=img_bytes
+            Body=img_bytes,
+            ContentType='image/jpeg'
         )
         
         #Persist frame data in dynamodb
@@ -167,7 +181,13 @@ def process_image(event, context):
             's3_key' : s3_key
         }
 
-        ddb_table.put_item(Item=item)
+        # print('-========================')
+        # print(json.dumps(item))
+        # print('-========================')
+        
+        item_decimal = json.loads(json.dumps(item), parse_float=decimal.Decimal)
+        
+        ddb_table.put_item(Item=item_decimal)
 
     print('Successfully processed {} records.'.format(len(event['Records'])))
     return

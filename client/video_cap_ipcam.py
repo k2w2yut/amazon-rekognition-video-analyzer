@@ -107,7 +107,7 @@ def main():
 
 
         if a != -1 and b != -1:
-            #print 'Found JPEG markers. Start {}, End {}'.format(a,b)
+            # print 'Found JPEG markers. Start {}, End {}'.format(a,b)
             
             frame_jpg_bytes = bytes[a:b+2]
             bytes = bytes[b+2:]
